@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model order {
+  id                               String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  status                           String   @db.VarChar(255)
+  end_customer_id                  String?  @db.Uuid
+  middle_agent_id                  String?  @db.Uuid
+  created_at                       DateTime @default(now()) @db.Timestamp(6)
+  updated_at                       DateTime @default(now()) @db.Timestamp(6)
+  user_order_end_customer_idTouser user?    @relation("order_end_customer_idTouser", fields: [end_customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_order_middle_agent_idTouser user?    @relation("order_middle_agent_idTouser", fields: [middle_agent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model organization {
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  description String?  @db.VarChar(255)
+  image       String?  @db.VarChar(255)
+  name        String   @db.VarChar(255)
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+  user_id     String   @db.Uuid
+  tenant_id   String   @db.VarChar(255)
+  user        user     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model review {
+  id                                String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  rating                            Int
+  comment                           String?  @db.VarChar(255)
+  end_customer_id                   String?  @db.Uuid
+  middle_agent_id                   String?  @db.Uuid
+  created_at                        DateTime @default(now()) @db.Timestamp(6)
+  updated_at                        DateTime @default(now()) @db.Timestamp(6)
+  user_review_end_customer_idTouser user?    @relation("review_end_customer_idTouser", fields: [end_customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_review_middle_agent_idTouser user?    @relation("review_middle_agent_idTouser", fields: [middle_agent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id                                  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                               String         @unique @db.VarChar(255)
+  firstName                           String?        @db.VarChar(255)
+  lastName                            String?        @db.VarChar(255)
+  roq_user_id                         String         @db.VarChar(255)
+  tenant_id                           String         @db.VarChar(255)
+  created_at                          DateTime       @default(now()) @db.Timestamp(6)
+  updated_at                          DateTime       @default(now()) @db.Timestamp(6)
+  order_order_end_customer_idTouser   order[]        @relation("order_end_customer_idTouser")
+  order_order_middle_agent_idTouser   order[]        @relation("order_middle_agent_idTouser")
+  organization                        organization[]
+  review_review_end_customer_idTouser review[]       @relation("review_end_customer_idTouser")
+  review_review_middle_agent_idTouser review[]       @relation("review_middle_agent_idTouser")
+}
